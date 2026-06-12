@@ -1,0 +1,9 @@
+
+.early.coverage
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+
+# Python cache directory
+__pycache__/
