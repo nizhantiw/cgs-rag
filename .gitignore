@@ -7,3 +7,6 @@
 
 # Python cache directory
 __pycache__/
+
+dist
+cgs_rag.egg-info
