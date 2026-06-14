@@ -4,8 +4,8 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name        = "cgs-rag"
-version     = "0.1.0"
-description = "Composite Grounding Score: multi-signal hallucination detection for production RAG systems"
+version     = "0.2.0"
+description = "Composite Grounding Score: multi-signal hallucination detection for production RAG systems. v0.2.0 adds atomic claim-level faithfulness scoring."
 requires-python = ">=3.9"
 license     = {text = "MIT"}
 authors     = [{name = "Nishant Kumar", email = "nishant.k@marmeto.com"}]

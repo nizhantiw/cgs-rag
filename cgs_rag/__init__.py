@@ -1,6 +1,6 @@
 """
-cgs-rag
-=======
+cgs-rag  v0.2.0
+===============
 Composite Grounding Score — multi-signal hallucination detection for
 production RAG systems.
 
@@ -9,8 +9,8 @@ Based on the thesis:
    Hallucination Detection in Production RAG Systems"
   Nishant Kumar, IIT Patna Executive M.Tech AI & DSE, 2025
 
-Quick start
------------
+Quick start — whole-answer scoring
+------------------------------------
     from cgs_rag import CGSDetector
 
     detector = CGSDetector()
@@ -23,6 +23,24 @@ Quick start
     print(result.is_hallucination)    # True
     print(result.explain())
 
+NEW in v0.2.0 — Atomic claim-level scoring
+--------------------------------------------
+    result = detector.score_claims(
+        question = "What is d_model and how many attention heads?",
+        answer   = "The model uses d_model=512 with 12 attention heads.",
+        chunks   = [                                 # individual retrieved chunks
+            "We use d_model = 512 in our base model.",
+            "We employ h = 8 parallel attention heads.",
+        ],
+    )
+    print(result.risk_score)           # 0.91  (worst claim drives the score)
+    print(result.hallucinated_count)   # 1
+    for c in result.claims:
+        print(c.verdict, c.text)
+    # GROUNDED    The model uses d_model=512
+    # HALLUCINATED  12 attention heads
+    print(result.explain())            # full breakdown
+
 Domain calibration
 ------------------
     import pandas as pd
@@ -34,8 +52,8 @@ Domain calibration
 """
 
 from .detector import CGSDetector
-from .result   import CGSResult
+from .result   import CGSResult, CGSClaimResult, CGSAtomicResult
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__  = "Nishant Kumar"
-__all__     = ["CGSDetector", "CGSResult"]
+__all__     = ["CGSDetector", "CGSResult", "CGSClaimResult", "CGSAtomicResult"]
