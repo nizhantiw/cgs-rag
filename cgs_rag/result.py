@@ -1,10 +1,21 @@
 """
-CGSResult — the return type for every detector.score() call.
+CGS Result types — v0.2.0
+==========================
+
+CGSResult       — original whole-answer scoring result (unchanged API)
+CGSClaimResult  — NEW: result for a single atomic claim
+CGSAtomicResult — NEW: aggregate result from claim-level decomposition scoring
 """
 
-from dataclasses import dataclass, field
-from typing import Dict
+from __future__ import annotations
 
+from dataclasses import dataclass, field
+from typing import Dict, List
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Original result type (unchanged — backward-compatible)
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @dataclass
 class CGSResult:
@@ -97,4 +108,165 @@ class CGSResult:
             f"CGSResult(risk={self.risk_score:.3f}, "
             f"hal={self.is_hallucination}, "
             f"mode={self.mode!r})"
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NEW — Atomic claim-level result types (v0.2.0)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class CGSClaimResult:
+    """
+    Faithfulness verdict for a single atomic claim extracted from the answer.
+
+    Attributes
+    ----------
+    text           : the atomic claim string
+    nli            : NLI entailment score vs best matching chunk  [0, 1]
+    cosine         : cosine similarity to best matching chunk     [0, 1]
+    risk           : claim-level risk score                       [0, 1]
+    verdict        : "GROUNDED" | "HALLUCINATED"
+    best_chunk_idx : index of the retrieved chunk used for this claim (-1 if unknown)
+    """
+
+    text:           str
+    nli:            float
+    cosine:         float
+    risk:           float
+    verdict:        str        # "GROUNDED" | "HALLUCINATED"
+    best_chunk_idx: int = -1
+
+    def to_dict(self) -> dict:
+        return {
+            "text":           self.text,
+            "nli":            self.nli,
+            "cosine":         self.cosine,
+            "risk":           self.risk,
+            "verdict":        self.verdict,
+            "best_chunk_idx": self.best_chunk_idx,
+        }
+
+    def __repr__(self) -> str:
+        return (
+            f"CGSClaimResult(verdict={self.verdict!r}, "
+            f"risk={self.risk:.3f}, "
+            f"text={self.text[:40]!r})"
+        )
+
+
+@dataclass
+class CGSAtomicResult:
+    """
+    Result of atomic claim-level decomposition scoring.
+
+    The answer is decomposed into atomic claims, each claim is verified
+    independently against the best-matching retrieved chunk, and the final
+    risk score is the worst (maximum) per-claim risk.
+
+    Attributes
+    ----------
+    risk_score       : float in [0, 1] — worst-claim risk (use for threshold decisions)
+    is_hallucination : True if risk_score >= threshold
+    threshold        : decision threshold
+    mode             : "lite" or "full"
+    direction        : cosine direction setting of the detector
+    claims           : list of per-claim results in answer order
+    aggregation      : aggregation strategy used (always "worst_claim" for now)
+    """
+
+    risk_score:       float
+    is_hallucination: bool
+    threshold:        float
+    mode:             str
+    direction:        str
+    claims:           List[CGSClaimResult] = field(default_factory=list)
+    aggregation:      str = "worst_claim"
+
+    # ── Convenience properties ────────────────────────────────────────────────
+
+    @property
+    def grounded_count(self) -> int:
+        """Number of claims classified as GROUNDED."""
+        return sum(1 for c in self.claims if c.verdict == "GROUNDED")
+
+    @property
+    def hallucinated_count(self) -> int:
+        """Number of claims classified as HALLUCINATED."""
+        return sum(1 for c in self.claims if c.verdict == "HALLUCINATED")
+
+    @property
+    def worst_claim(self) -> "CGSClaimResult | None":
+        """The claim with the highest risk score, or None if no claims."""
+        return max(self.claims, key=lambda c: c.risk) if self.claims else None
+
+    # ── Human-readable explanation ────────────────────────────────────────────
+
+    def explain(self) -> str:
+        """Return a full, human-readable breakdown of atomic claim scoring."""
+        verdict_str = "HALLUCINATION ⚠️" if self.is_hallucination else "GROUNDED ✅"
+        n = len(self.claims)
+
+        lines = [
+            f"CGS Atomic Risk Score : {self.risk_score:.3f}  →  {verdict_str}",
+            f"Aggregation : {self.aggregation}  |  "
+            f"{self.grounded_count}/{n} claims grounded",
+            f"Threshold   : {self.threshold:.2f}  |  Mode: {self.mode}",
+            "",
+            "Claim-by-claim breakdown:",
+        ]
+
+        for i, c in enumerate(self.claims, 1):
+            icon = "✅" if c.verdict == "GROUNDED" else "⚠️"
+            lines.append(
+                f"  [{i}] {icon} {c.verdict:<12s}  "
+                f"NLI={c.nli:.3f}  cos={c.cosine:.3f}  risk={c.risk:.3f}"
+            )
+            lines.append(f"       \"{c.text}\"")
+
+        if self.is_hallucination and self.worst_claim is not None:
+            wc = self.worst_claim
+            lines += [
+                "",
+                f"Highest-risk claim (risk={wc.risk:.3f}):",
+                f"  \"{wc.text}\"",
+                f"  NLI={wc.nli:.3f}  cosine={wc.cosine:.3f}  "
+                f"chunk_idx={wc.best_chunk_idx}",
+                "",
+                "Interpretation:",
+                "  → At least one atomic claim in the answer is not faithfully",
+                "    supported by any retrieved chunk.",
+            ]
+        else:
+            lines += [
+                "",
+                "Interpretation:",
+                "  → All atomic claims are supported by the retrieved context.",
+            ]
+
+        return "\n".join(lines)
+
+    # ── Serialisation ─────────────────────────────────────────────────────────
+
+    def to_dict(self) -> dict:
+        """Serialisable dict for logging / API responses."""
+        return {
+            "risk_score":          self.risk_score,
+            "is_hallucination":    self.is_hallucination,
+            "threshold":           self.threshold,
+            "mode":                self.mode,
+            "direction":           self.direction,
+            "aggregation":         self.aggregation,
+            "grounded_count":      self.grounded_count,
+            "hallucinated_count":  self.hallucinated_count,
+            "total_claims":        len(self.claims),
+            "claims":              [c.to_dict() for c in self.claims],
+        }
+
+    def __repr__(self) -> str:
+        return (
+            f"CGSAtomicResult(risk={self.risk_score:.3f}, "
+            f"hal={self.is_hallucination}, "
+            f"claims={len(self.claims)}, "
+            f"grounded={self.grounded_count}/{len(self.claims)})"
         )
