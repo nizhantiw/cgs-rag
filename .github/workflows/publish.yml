@@ -11,7 +11,7 @@
 # One-time PyPI setup (do this once at pypi.org):
 #   1. Go to pypi.org → your project → Publishing → Add a publisher
 #   2. Publisher type: GitHub Actions
-#   3. Owner: your GitHub username
+#   3. Owner: Nishant Kumar
 #   4. Repository: cgs-rag
 #   5. Workflow filename: publish.yml
 #   6. Environment name: pypi
