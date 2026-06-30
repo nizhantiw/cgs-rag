@@ -50,8 +50,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage   = "https://github.com/nizhantiw/cgs-rag-scoring"
-Repository = "https://github.com/nizhantiw/cgs-rag-scoring"
+Homepage   = "https://github.com/nizhantiw/cgs-rag"
+Repository = "https://github.com/nizhantiw/cgs-rag"
 
 [tool.setuptools.packages.find]
 where   = ["."]

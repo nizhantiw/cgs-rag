@@ -25,7 +25,7 @@ CGS runs in **under 0.6 sec/query on CPU** with no LLM calls required (Lite mode
 ## Installation
 
 ```bash
-git clone https://github.com/nizhantiw/cgs-rag-scoring
+git clone https://github.com/nizhantiw/cgs-rag
 cd cgs-rag/cgs_framework
 pip install -e .
 ```
