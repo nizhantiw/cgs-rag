@@ -7,7 +7,7 @@ production RAG systems.
 Based on the thesis:
   "Composite Grounding Score (CGS): A Multi-Signal Framework for
    Hallucination Detection in Production RAG Systems"
-  Nishant Kumar, IIT Patna Executive M.Tech AI & DSE, 2025
+  Nishant Kumar, IIT Patna M.Tech AI & DSE, 2026
 
 Quick start — whole-answer scoring
 ------------------------------------

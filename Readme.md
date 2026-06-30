@@ -226,7 +226,7 @@ If you use CGS in your research, please cite:
              Hallucination Detection in Production {RAG} Systems},
   school  = {Indian Institute of Technology Patna},
   year    = {2026},
-  program = {Executive M.Tech in AI \& Data Science Engineering},
+  program = {M.Tech in AI \& Data Science Engineering},
 }
 ```
 
