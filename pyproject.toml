@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "cgs-rag"
-version     = "0.2.0"
-description = "Composite Grounding Score: multi-signal hallucination detection for production RAG systems. v0.2.0 adds atomic claim-level faithfulness scoring."
+version     = "0.2.1"
+description = "Composite Grounding Score: multi-signal hallucination detection for production RAG systems"
+readme      = "README.md"
 requires-python = ">=3.9"
 license     = {text = "MIT"}
-authors     = [{name = "Nishant Kumar", email = "nishant.k@marmeto.com"}]
+authors     = [{name = "Nishant Kumar", email = "nizhantiw@gmail.com"}]
 
 keywords = [
   "rag", "retrieval-augmented-generation",
@@ -49,8 +50,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage   = "https://github.com/nizhantiw/cgs-rag"
-Repository = "https://github.com/nizhantiw/cgs-rag"
+Homepage   = "https://github.com/nizhantiw/cgs-rag-scoring"
+Repository = "https://github.com/nizhantiw/cgs-rag-scoring"
 
 [tool.setuptools.packages.find]
 where   = ["."]

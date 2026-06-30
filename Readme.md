@@ -25,7 +25,7 @@ CGS runs in **under 0.6 sec/query on CPU** with no LLM calls required (Lite mode
 ## Installation
 
 ```bash
-git clone https://github.com/nishant-k-marmeto/cgs-rag
+git clone https://github.com/nizhantiw/cgs-rag-scoring
 cd cgs-rag/cgs_framework
 pip install -e .
 ```
@@ -226,7 +226,7 @@ If you use CGS in your research, please cite:
              Hallucination Detection in Production {RAG} Systems},
   school  = {Indian Institute of Technology Patna},
   year    = {2026},
-  program = {M.Tech in AI \& Data Science Engineering},
+  program = {Executive M.Tech in AI \& Data Science Engineering},
 }
 ```
 
